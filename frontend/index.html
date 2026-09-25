@@ -1,0 +1,49 @@
+﻿<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PhishGuard • SOC Threat Intelligence & Decision Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            colors: {
+              soc: {
+                bg: '#0a0e17',
+                card: '#111827',
+                cardhover: '#172033',
+                border: '#1f2937',
+                accent: '#3b82f6',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        background-color: #0a0e17;
+        color: #f3f4f6;
+      }
+      .neutralized-phish-link {
+        color: #ef4444 !important;
+        text-decoration: underline dashed !important;
+        cursor: not-allowed !important;
+      }
+    </style>
+  </head>
+  <body class="bg-soc-bg text-gray-100 antialiased min-h-screen">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

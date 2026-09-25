@@ -1,0 +1,17 @@
+﻿From: GitHub Security <notifications@github.com>
+To: engineering-team@corporate.internal
+Subject: [GitHub] Security advisory published for repository dependencies
+Date: Fri, 25 Sep 2026 14:10:00 +0000
+Message-ID: <gh-sec-94021@github.com>
+Authentication-Results: mx.google.com; dkim=pass header.i=@github.com; spf=pass (google.com: domain of notifications@github.com designates 192.30.252.204 as permitted sender) smtp.mailfrom=notifications@github.com; dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=github.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+
+Hello,
+
+A Dependabot security alert has identified a vulnerable dependency in your repository.
+Please review the CVE advisory and upgrade instructions directly on GitHub:
+
+https://github.com/corporate-org/core-service/security/dependabot/1
+
+GitHub Security Team
