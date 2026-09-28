@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   ShieldCheck, AlertOctagon, AlertTriangle, CheckCircle2,
-  ArrowRight, Upload, Sparkles, RefreshCw, X,
-  HelpCircle, ChevronDown, ChevronUp, Eye, Mail
+  Upload, ArrowRight, RefreshCw, FileText, X,
+  HelpCircle, ChevronDown, ChevronUp
 } from 'lucide-react';
 
 const API_BASE = "http://127.0.0.1:8000";
@@ -18,46 +18,27 @@ interface SamplePreset {
 const PRESET_SAMPLES: SamplePreset[] = [
   {
     id: 'google',
-    name: 'Google Security Alert',
-    tag: 'Fake Lookalike',
-    tagColor: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
+    name: 'Fake Google Alert',
+    tag: 'Lookalike Phish',
+    tagColor: 'text-red-400 bg-red-500/10 border-red-500/20',
     text: `From: "Google Security" <no-reply@accounts-google-verify.click>
-To: target.user@gmail.com
+To: user@gmail.com
 Subject: Critical security alert: Suspicious sign-in prevented
 Date: Mon, 28 Sep 2026 12:00:00 +0000
 Authentication-Results: spf=fail; dkim=none; dmarc=fail
 
 Someone just tried to access your Google Account from Moscow, Russia.
 Please verify your identity immediately:
-http://accounts-google-verify.click/login?user=target.user@gmail.com
+http://accounts-google-verify.click/login?user=user@gmail.com
 
 If this was not you, your account will be permanently locked in 2 hours.
 Google Accounts Security Team`
   },
   {
-    id: 'm365',
-    name: 'Microsoft 365 Expiry',
-    tag: 'Credential Harvest',
-    tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
-    text: `From: "Microsoft 365 Support" <no-reply@security-alerts-office365.com>
-To: employee@company.com
-Subject: ACTION REQUIRED: Your Microsoft 365 password expires today
-Date: Mon, 28 Sep 2026 11:30:00 +0000
-Authentication-Results: spf=softfail; dkim=none; dmarc=fail
-
-Dear Employee,
-
-Your Microsoft 365 access will be terminated within 2 hours due to credential expiration.
-Reset your password immediately on our secure portal:
-https://login-micros0ft.com/auth/login?user=employee@company.com
-
-IT Helpdesk Support`
-  },
-  {
     id: 'ceo',
-    name: 'CEO Urgent Wire / Gift Cards',
-    tag: 'Executive Spoof',
-    tagColor: 'text-orange-400 bg-orange-500/10 border-orange-500/20',
+    name: 'CEO Urgent Gift Cards',
+    tag: 'Impersonation BEC',
+    tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
     text: `From: "Sarah Jenkins (CEO)" <sarah.jenkins.exec99@gmail.com>
 To: cfo@company.com
 Reply-To: sarah.jenkins.exec99@gmail.com
@@ -68,7 +49,7 @@ Authentication-Results: spf=pass; dkim=pass; dmarc=pass
 Hi Mark,
 
 I am currently in an executive meeting and cannot take phone calls.
-I need you to urgently purchase 5 Apple gift cards ($500 each) for client bonuses right now.
+I need you to purchase 5 Apple gift cards ($500 each) for client bonuses right now.
 Reply to this email with the claim codes as soon as you have them.
 
 Thanks,
@@ -78,7 +59,7 @@ Chief Executive Officer`
   {
     id: 'github',
     name: 'GitHub Security Advisory',
-    tag: 'Authentic Safe',
+    tag: 'Safe / Authentic',
     tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
     text: `From: "GitHub Security" <notifications@github.com>
 To: dev@company.com
@@ -98,64 +79,71 @@ GitHub Security Operations`
 
 export default function App() {
   const [emailInput, setEmailInput] = useState('');
+  const [loadedFileName, setLoadedFileName] = useState<string | null>(null);
   const [activeSampleId, setActiveSampleId] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [scanning, setScanning] = useState(false);
-  const [scanStepIndex, setScanStepIndex] = useState(0);
-  const [cipherText, setCipherText] = useState('0x4F9B... VERIFYING_MIME');
   const [result, setResult] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showInstructions, setShowInstructions] = useState(false);
-  const [showRawDetails, setShowRawDetails] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
-  const SCAN_STAGES = [
-    { title: "DECODING HEADERS", desc: "Parsing RFC 5322 MIME & Sender Routing" },
-    { title: "AUTH AUDIT", desc: "Verifying SPF, DKIM & DMARC DNS Records" },
-    { title: "HOMOGLYPH SCAN", desc: "Checking Punycode & Brand Domain Squatting" },
-    { title: "URL DEFANGING", desc: "Extracting & Neutralizing Malicious Links" },
-    { title: "TYPESAFE JEV AI", desc: "Evaluating Semantic Intent & Coercion Patterns" },
-    { title: "SYNTHESIS", desc: "Finalizing Security Policy Verdict" }
-  ];
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Dynamic cyber scanner ticker
-  useEffect(() => {
-    let stageInterval: any;
-    let cipherInterval: any;
+  // Drag and Drop event handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
 
-    if (scanning) {
-      setScanStepIndex(0);
-      stageInterval = setInterval(() => {
-        setScanStepIndex(prev => (prev < SCAN_STAGES.length - 1 ? prev + 1 : prev));
-      }, 380);
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
 
-      const ciphers = [
-        "0xA73F... DMARC_ALIGNMENT_CHECK",
-        "0xBC81... SENDER_HOMOGLYPH_EVAL",
-        "0x942D... DEFANGING_TARGET_URLS",
-        "0x1E05... JEV_CHOICE_CLASSIFIER",
-        "0x3C49... POLICY_ACTION_SYNTHESIS"
-      ];
-      let cIdx = 0;
-      cipherInterval = setInterval(() => {
-        cIdx = (cIdx + 1) % ciphers.length;
-        setCipherText(ciphers[cIdx]);
-      }, 180);
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      await processUploadedFile(files[0]);
     }
+  };
 
-    return () => {
-      clearInterval(stageInterval);
-      clearInterval(cipherInterval);
-    };
-  }, [scanning]);
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      await processUploadedFile(file);
+    }
+  };
+
+  const processUploadedFile = async (file: File) => {
+    setError(null);
+    try {
+      // Read the file text so user can see it in the box
+      const text = await file.text();
+      setEmailInput(text);
+      setLoadedFileName(file.name);
+      setActiveSampleId(null);
+    } catch (err) {
+      setError("Failed to read the .eml file. Please try pasting the text instead.");
+    }
+  };
 
   const handleSelectSample = (sample: SamplePreset) => {
     setEmailInput(sample.text);
     setActiveSampleId(sample.id);
+    setLoadedFileName(null);
     setError(null);
   };
 
   const handleScan = async () => {
     if (!emailInput.trim()) {
-      setError("Please paste an email message or select one of the examples below.");
+      setError("Please paste an email or drop a .eml file before scanning.");
       return;
     }
 
@@ -170,46 +158,15 @@ export default function App() {
         body: JSON.stringify({ raw_eml: emailInput })
       });
 
-      if (!res.ok) throw new Error("Analysis failed. Please check the email format.");
+      if (!res.ok) throw new Error("Analysis failed. Please verify the email format.");
       const data = await res.json();
 
       setTimeout(() => {
         setResult(data);
         setScanning(false);
-      }, 1200);
+      }, 700);
     } catch (err: any) {
-      setError(err.message || "Could not analyze the email.");
-      setScanning(false);
-    }
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setError(null);
-    setScanning(true);
-    setResult(null);
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const res = await fetch(`${API_BASE}/api/emails/upload-eml`, {
-        method: "POST",
-        body: formData
-      });
-      if (!res.ok) throw new Error("Could not parse .eml file.");
-      const data = await res.json();
-
-      setTimeout(() => {
-        setResult(data);
-        setEmailInput(data.plain_text || `Subject: ${data.subject}\nFrom: ${data.sender}`);
-        setActiveSampleId(null);
-        setScanning(false);
-      }, 1200);
-    } catch (err: any) {
-      setError(err.message || "Failed to analyze .eml file.");
+      setError(err.message || "Failed to analyze message.");
       setScanning(false);
     }
   };
@@ -217,294 +174,232 @@ export default function App() {
   const handleReset = () => {
     setResult(null);
     setEmailInput('');
+    setLoadedFileName(null);
     setActiveSampleId(null);
     setError(null);
-    setShowRawDetails(false);
+    setShowDetails(false);
   };
 
   const isPhish = result?.policy?.verdict === 'QUARANTINE_RECOMMENDATION';
   const isEscalate = result?.policy?.verdict === 'ESCALATE';
 
   return (
-    <div className="min-h-screen bg-[#07080c] text-slate-100 flex flex-col justify-between font-sans selection:bg-indigo-500/30 relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#111215] text-[#ececee] flex flex-col justify-between font-sans selection:bg-blue-500/30">
       
-      {/* Subtle Ambient Radial Backlight */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-gradient-to-b from-indigo-600/10 via-purple-600/5 to-transparent blur-3xl pointer-events-none" />
-
-      {/* Top Navbar */}
-      <header className="relative z-10 px-6 py-4 border-b border-white/[0.06] flex items-center justify-between max-w-5xl w-full mx-auto">
+      {/* Simple Header */}
+      <header className="px-6 py-4 border-b border-[#23252d] flex items-center justify-between max-w-4xl w-full mx-auto">
         <div className="flex items-center gap-2.5 cursor-pointer" onClick={handleReset}>
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-indigo-600 flex items-center justify-center text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]">
-            <ShieldCheck className="w-4 h-4 text-white" />
+          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold shadow-sm">
+            <ShieldCheck className="w-4 h-4" />
           </div>
-          <span className="font-bold text-base tracking-tight text-white font-mono">PhishGuard</span>
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.06] text-slate-400 font-mono border border-white/[0.08]">
-            v2.4 Open Source
+          <span className="font-semibold text-base tracking-tight text-white">PhishGuard</span>
+          <span className="text-[11px] px-2 py-0.5 rounded bg-[#1e2029] text-[#9a9ca6] border border-[#2c2e3a]">
+            Open Source
           </span>
         </div>
 
         <button
           onClick={() => setShowInstructions(!showInstructions)}
-          className="text-xs text-slate-400 hover:text-indigo-400 transition-colors flex items-center gap-1.5 cursor-pointer py-1 px-2.5 rounded-lg hover:bg-white/[0.04]"
+          className="text-xs text-[#9a9ca6] hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer py-1.5 px-3 rounded-md hover:bg-[#1a1c24]"
         >
-          <HelpCircle className="w-3.5 h-3.5 text-indigo-400" />
+          <HelpCircle className="w-3.5 h-3.5 text-blue-400" />
           <span>How to extract from Gmail</span>
         </button>
       </header>
 
       {/* Main Container */}
-      <main className="relative z-10 flex-1 max-w-3xl w-full mx-auto px-5 py-8 flex flex-col justify-center">
+      <main className="flex-1 max-w-3xl w-full mx-auto px-5 py-8 flex flex-col justify-center">
         
-        {/* Gmail Instructions Modal Drawer */}
+        {/* Help Drawer */}
         {showInstructions && (
-          <div className="mb-6 p-5 rounded-2xl bg-[#0d0f17] border border-indigo-500/30 text-xs text-slate-300 shadow-2xl space-y-3 animate-in fade-in duration-200">
-            <div className="flex items-center justify-between font-bold text-indigo-300">
-              <span className="flex items-center gap-1.5 font-mono">
-                <Mail className="w-4 h-4 text-indigo-400" />
-                HOW TO GET RAW EMAIL FROM GMAIL IN 2 CLICKS
-              </span>
-              <button onClick={() => setShowInstructions(false)} className="text-slate-400 hover:text-white cursor-pointer p-1">
+          <div className="mb-6 p-4 rounded-xl bg-[#181920] border border-[#2b2d39] text-xs text-[#c4c6cf] space-y-3 animate-in fade-in duration-150">
+            <div className="flex items-center justify-between font-semibold text-white">
+              <span>HOW TO GET AN EMAIL FROM GMAIL OR OUTLOOK</span>
+              <button onClick={() => setShowInstructions(false)} className="text-[#888b96] hover:text-white cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px] leading-relaxed">
-              <div className="p-3.5 rounded-xl bg-black/40 border border-white/[0.06]">
-                <b className="text-white block mb-1">Method A: Copy & Paste (Fastest)</b>
-                1. Open the email in Gmail.<br />
-                2. Click the <b>3 dots `⋮`</b> next to the Reply arrow.<br />
-                3. Click <b>"Show original"</b>.<br />
-                4. Click <b>"Copy to clipboard"</b>, then paste into the box below.
+              <div className="p-3 rounded-lg bg-[#111217] border border-[#262834]">
+                <b className="text-white block mb-1">📬 In Gmail:</b>
+                1. Open the suspicious email.<br />
+                2. Click the <b>3 dots `⋮`</b> next to Reply.<br />
+                3. Choose <b>"Download message"</b> ➔ drag that `.eml` file into the box below.<br />
+                <i>(Or click "Show original" and copy/paste the text).</i>
               </div>
-              <div className="p-3.5 rounded-xl bg-black/40 border border-white/[0.06]">
-                <b className="text-white block mb-1">Method B: Download .eml File</b>
-                1. Open the email in Gmail.<br />
-                2. Click the <b>3 dots `⋮`</b>.<br />
-                3. Click <b>"Download message"</b> to save the `.eml`.<br />
-                4. Click <b>Upload .eml</b> below to drop it in.
+              <div className="p-3 rounded-lg bg-[#111217] border border-[#262834]">
+                <b className="text-white block mb-1">📫 In Outlook:</b>
+                1. Open the message.<br />
+                2. Click the <b>3 dots `...`</b> ➔ <b>View</b> ➔ <b>View message details</b>.<br />
+                3. Select all, copy, and paste directly into the box.
               </div>
             </div>
           </div>
         )}
 
-        {/* HERO TITLE (Hidden during scan and result) */}
+        {/* Hero Title */}
         {!result && !scanning && (
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium mb-3">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Instant AI & Cryptographic Email Triage</span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-2">
-              Is this email legitimate or a <span className="bg-gradient-to-r from-rose-400 via-purple-300 to-indigo-300 bg-clip-text text-transparent">phishing scam?</span>
+          <div className="text-center mb-6">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-2">
+              Is this email safe or a phishing attack?
             </h1>
-            <p className="text-sm text-slate-400 max-w-lg mx-auto leading-relaxed">
-              Paste the message or headers below. Inspect SPF/DKIM verification, sneaky lookalike domains, and malicious links with zero setup.
+            <p className="text-sm text-[#9294a0] max-w-md mx-auto">
+              Paste the email text or drag and drop a <b>.eml</b> file below to check its sender authentication and links.
             </p>
           </div>
         )}
 
         {/* ======================================================== */}
-        {/* STATE 1: HIGH-TECH CYBER SCANNER ANIMATION */}
+        {/* SIMPLE LOADING SPINNER */}
         {/* ======================================================== */}
         {scanning && (
-          <div className="p-8 sm:p-10 rounded-3xl bg-[#0b0d14]/90 border border-indigo-500/30 shadow-[0_0_50px_rgba(99,102,241,0.15)] flex flex-col items-center justify-center text-center my-6 relative overflow-hidden backdrop-blur-xl">
-            
-            {/* Oscillating Dual Scan Beams */}
-            <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-400 to-transparent animate-pulse shadow-[0_0_20px_#818cf8]" />
-            <div className="absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-purple-400 to-transparent animate-pulse shadow-[0_0_20px_#a855f7]" />
-
-            {/* Concentric Rotating Hologram Rings */}
-            <div className="relative w-24 h-24 mb-6 flex items-center justify-center">
-              {/* Outer dashed ring */}
-              <div className="absolute inset-0 rounded-full border border-dashed border-indigo-500/30 animate-[spin_8s_linear_infinite]" />
-              {/* Middle reverse spinning ring */}
-              <div className="absolute inset-2 rounded-full border-t-2 border-l-2 border-indigo-400/60 animate-[spin_3s_linear_infinite_reverse]" />
-              {/* Glowing inner core */}
-              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center shadow-[0_0_25px_rgba(99,102,241,0.6)]">
-                <ShieldCheck className="w-6 h-6 text-white animate-pulse" />
-              </div>
-            </div>
-
-            {/* Current Scan Stage & Description */}
-            <div className="space-y-1 mb-5">
-              <div className="text-[10px] font-mono tracking-widest text-indigo-400 uppercase font-bold">
-                {SCAN_STAGES[scanStepIndex].title}
-              </div>
-              <h3 className="text-base font-semibold text-white">
-                {SCAN_STAGES[scanStepIndex].desc}
-              </h3>
-            </div>
-
-            {/* Live Cryptographic Decipher Ticker */}
-            <div className="px-3.5 py-1.5 rounded-lg bg-black/60 border border-white/[0.08] font-mono text-[11px] text-slate-400 tracking-wider">
-              <span className="text-indigo-400 font-bold mr-2">SYS_AUDIT:</span>
-              <span>{cipherText}</span>
-            </div>
-
-            {/* Progress Micro-Bar */}
-            <div className="w-56 h-1 bg-white/[0.06] rounded-full overflow-hidden mt-6">
-              <div
-                className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-400 transition-all duration-300 rounded-full"
-                style={{ width: `${((scanStepIndex + 1) / SCAN_STAGES.length) * 100}%` }}
-              />
-            </div>
+          <div className="p-10 rounded-2xl bg-[#181920] border border-[#2b2d39] text-center my-6 flex flex-col items-center justify-center">
+            <div className="w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
+            <h3 className="text-sm font-semibold text-white mb-1">Analyzing Email Security</h3>
+            <p className="text-xs text-[#9294a0]">
+              Checking SPF/DKIM authentication, lookalike domains, and defanging links...
+            </p>
           </div>
         )}
 
         {/* ======================================================== */}
-        {/* STATE 2: CLEAR ACTIONABLE VERDICT RESULT */}
+        {/* CLEAN VERDICT VIEW */}
         {/* ======================================================== */}
         {!scanning && result && (
-          <div className="space-y-5 animate-in fade-in duration-300">
+          <div className="space-y-4 animate-in fade-in duration-200">
             
-            {/* Top Main Verdict Card */}
+            {/* Verdict Banner */}
             <div
-              className={`p-6 sm:p-7 rounded-3xl border shadow-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-5 backdrop-blur-xl ${
+              className={`p-5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
                 isPhish
-                  ? 'bg-gradient-to-br from-[#1b0b11] to-[#0f0509] border-rose-500/40 shadow-[0_0_40px_rgba(244,63,94,0.12)]'
+                  ? 'bg-[#201317] border-red-500/30'
                   : isEscalate
-                  ? 'bg-gradient-to-br from-[#1a1207] to-[#0f0a03] border-amber-500/40 shadow-[0_0_40px_rgba(245,158,11,0.12)]'
-                  : 'bg-gradient-to-br from-[#061810] to-[#030e09] border-emerald-500/40 shadow-[0_0_40px_rgba(16,185,129,0.12)]'
+                  ? 'bg-[#211a12] border-amber-500/30'
+                  : 'bg-[#121f18] border-emerald-500/30'
               }`}
             >
-              <div className="flex items-start gap-4">
+              <div className="flex items-start gap-3.5">
                 <div
-                  className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
                     isPhish
-                      ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                      ? 'bg-red-500/20 text-red-400'
                       : isEscalate
-                      ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                      : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                      ? 'bg-amber-500/20 text-amber-400'
+                      : 'bg-emerald-500/20 text-emerald-400'
                   }`}
                 >
                   {isPhish ? (
-                    <AlertOctagon className="w-6 h-6" />
+                    <AlertOctagon className="w-5 h-5" />
                   ) : isEscalate ? (
-                    <AlertTriangle className="w-6 h-6" />
+                    <AlertTriangle className="w-5 h-5" />
                   ) : (
-                    <CheckCircle2 className="w-6 h-6" />
+                    <CheckCircle2 className="w-5 h-5" />
                   )}
                 </div>
 
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span
-                      className={`text-sm sm:text-base font-extrabold tracking-wide uppercase font-mono ${
-                        isPhish ? 'text-rose-400' : isEscalate ? 'text-amber-400' : 'text-emerald-400'
-                      }`}
-                    >
-                      {isPhish
-                        ? '🚨 MALICIOUS PHISHING DETECTED'
-                        : isEscalate
-                        ? '⚠️ SUSPICIOUS - VERIFY SENDER'
-                        : '✅ AUTHENTIC & SAFE TO OPEN'}
-                    </span>
-                  </div>
-
-                  <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+                  <h3
+                    className={`text-sm font-bold tracking-wide uppercase ${
+                      isPhish ? 'text-red-400' : isEscalate ? 'text-amber-400' : 'text-emerald-400'
+                    }`}
+                  >
                     {isPhish
-                      ? 'Do NOT click links, download attachments, or reply. This message is attempting to impersonate a brand or harvest credentials.'
+                      ? '🚨 Malicious Phishing Detected'
                       : isEscalate
-                      ? 'This message contains executive name spoofing or urgent payment requests. Call the sender directly on a known number before acting.'
-                      : 'Cryptographic authentication passed (SPF/DKIM/DMARC). No suspicious links, homoglyphs, or malware attachments found.'}
+                      ? '⚠️ Suspicious Email - Follow Up'
+                      : '✅ Safe - Looks Legitimate'}
+                  </h3>
+
+                  <p className="text-xs text-[#d3d5de] mt-1 leading-relaxed">
+                    {isPhish
+                      ? 'Do NOT click any links, open attachments, or reply. This email is attempting to impersonate a brand or harvest credentials.'
+                      : isEscalate
+                      ? 'Signs of executive impersonation or unusual requests detected. Confirm with the sender via phone before acting.'
+                      : 'Cryptographic authentication passed. No deceptive links or malware indicators found.'}
                   </p>
                 </div>
               </div>
 
-              <div className="shrink-0 flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 border-white/[0.08] pt-3 sm:pt-0">
-                <span className="text-[10px] text-slate-400 font-mono uppercase tracking-wider">Risk Severity</span>
+              <div className="shrink-0 text-left sm:text-right border-t sm:border-t-0 border-[#323542] pt-2 sm:pt-0">
+                <span className="text-[10px] text-[#8e909c] block font-mono">RISK SCORE</span>
                 <span
-                  className={`text-2xl font-bold font-mono ${
-                    isPhish ? 'text-rose-400' : isEscalate ? 'text-amber-400' : 'text-emerald-400'
+                  className={`text-lg font-bold font-mono ${
+                    isPhish ? 'text-red-400' : isEscalate ? 'text-amber-400' : 'text-emerald-400'
                   }`}
                 >
-                  {(result.jev?.risk_score || 1.0).toFixed(1)} <span className="text-xs text-slate-500">/ 5.0</span>
+                  {(result.jev?.risk_score || 1.0).toFixed(1)} / 5.0
                 </span>
               </div>
             </div>
 
-            {/* 3 Plain-English Findings Cards */}
+            {/* 3 Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               
-              {/* Sender & Domain Card */}
-              <div className="p-4 rounded-2xl bg-[#0c0e17] border border-white/[0.06] flex flex-col justify-between">
-                <div>
-                  <div className="text-[11px] text-slate-400 font-medium mb-1">SENDER DOMAIN</div>
-                  <div className="text-xs font-semibold text-white truncate" title={result.features?.sender?.from_domain}>
-                    {result.features?.sender?.from_domain || 'Unknown'}
-                  </div>
+              {/* Sender Domain */}
+              <div className="p-3.5 rounded-xl bg-[#181920] border border-[#272935]">
+                <div className="text-[11px] text-[#8e909c] mb-1">SENDER DOMAIN</div>
+                <div className="text-xs font-semibold text-white truncate" title={result.features?.sender?.from_domain}>
+                  {result.features?.sender?.from_domain || 'Unknown'}
                 </div>
-                <div className="text-[10px] mt-2 pt-2 border-t border-white/[0.04]">
+                <div className="text-[11px] mt-1.5">
                   {result.features?.signals?.lookalike_domains?.length > 0 ? (
-                    <span className="text-rose-400 font-semibold">⚠️ Fake lookalike domain detected!</span>
+                    <span className="text-red-400 font-medium">⚠️ Fake lookalike domain!</span>
                   ) : (
-                    <span className="text-slate-400">Sender domain is consistent</span>
+                    <span className="text-[#8e909c]">Domain verified</span>
                   )}
                 </div>
               </div>
 
-              {/* Authentication Card */}
-              <div className="p-4 rounded-2xl bg-[#0c0e17] border border-white/[0.06] flex flex-col justify-between">
-                <div>
-                  <div className="text-[11px] text-slate-400 font-medium mb-1">AUTHENTICATION</div>
-                  <div className="text-xs font-semibold">
-                    {result.features?.authentication?.dmarc === 'PASS' ? (
-                      <span className="text-emerald-400 flex items-center gap-1 font-mono">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> DMARC PASSED
-                      </span>
-                    ) : (
-                      <span className="text-rose-400 flex items-center gap-1 font-mono">
-                        <AlertOctagon className="w-3.5 h-3.5" /> DMARC FAILED
-                      </span>
-                    )}
-                  </div>
+              {/* Authentication */}
+              <div className="p-3.5 rounded-xl bg-[#181920] border border-[#272935]">
+                <div className="text-[11px] text-[#8e909c] mb-1">AUTHENTICATION</div>
+                <div className="text-xs font-semibold">
+                  {result.features?.authentication?.dmarc === 'PASS' ? (
+                    <span className="text-emerald-400">DMARC Passed</span>
+                  ) : (
+                    <span className="text-red-400">DMARC Failed</span>
+                  )}
                 </div>
-                <div className="text-[10px] text-slate-400 mt-2 pt-2 border-t border-white/[0.04]">
+                <div className="text-[11px] text-[#8e909c] mt-1.5">
                   {result.features?.authentication?.dmarc === 'PASS'
                     ? 'Cryptographically authenticated'
-                    : 'Sending server not authorized'}
+                    : 'Unauthorized sending server'}
                 </div>
               </div>
 
-              {/* Defanged Links Card */}
-              <div className="p-4 rounded-2xl bg-[#0c0e17] border border-white/[0.06] flex flex-col justify-between">
-                <div>
-                  <div className="text-[11px] text-slate-400 font-medium mb-1">EMBEDDED LINKS</div>
-                  <div className="text-xs font-semibold text-white">
-                    {result.features?.urls?.length || 0} links found
-                  </div>
+              {/* Links */}
+              <div className="p-3.5 rounded-xl bg-[#181920] border border-[#272935]">
+                <div className="text-[11px] text-[#8e909c] mb-1">EMBEDDED LINKS</div>
+                <div className="text-xs font-semibold text-white">
+                  {result.features?.urls?.length || 0} links found
                 </div>
-                <div className="text-[10px] mt-2 pt-2 border-t border-white/[0.04]">
-                  {result.features?.urls?.length > 0 ? (
-                    <span className="text-emerald-400">🛡️ All links defanged safely</span>
-                  ) : (
-                    <span className="text-slate-400">No external URLs in body</span>
-                  )}
+                <div className="text-[11px] text-emerald-400 mt-1.5">
+                  🛡️ All links defanged safely
                 </div>
               </div>
 
             </div>
 
-            {/* Optional Email Raw Details Expander */}
-            <div className="pt-2 text-center">
+            {/* Technical Details Toggle */}
+            <div className="pt-1 text-center">
               <button
-                onClick={() => setShowRawDetails(!showRawDetails)}
-                className="text-xs text-slate-400 hover:text-slate-200 transition-colors inline-flex items-center gap-1 cursor-pointer py-1 px-3 rounded-full hover:bg-white/[0.04]"
+                onClick={() => setShowDetails(!showDetails)}
+                className="text-xs text-[#8e909c] hover:text-white transition-colors inline-flex items-center gap-1 cursor-pointer"
               >
-                <Eye className="w-3.5 h-3.5 text-indigo-400" />
-                <span>{showRawDetails ? 'Hide technical audit trail' : 'View technical signals & defanged URLs'}</span>
-                {showRawDetails ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                <span>{showDetails ? 'Hide technical signals' : 'View technical signals & links'}</span>
+                {showDetails ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
               </button>
 
-              {showRawDetails && (
-                <div className="mt-3 p-4 rounded-2xl bg-[#090b12] border border-white/[0.06] text-left text-xs font-mono space-y-2 text-slate-300">
-                  <div><b>Policy Reasons:</b> {result.policy?.reasons?.join('; ') || 'Standard classification rules applied.'}</div>
-                  <div><b>Semantic Intent:</b> {result.jev?.classification} ({(result.jev?.classification_confidence * 100).toFixed(0)}% confidence)</div>
+              {showDetails && (
+                <div className="mt-3 p-3.5 rounded-xl bg-[#13141a] border border-[#252733] text-left text-xs font-mono space-y-1.5 text-[#b5b8c4]">
+                  <div><b>Policy Reasons:</b> {result.policy?.reasons?.join('; ') || 'Standard analysis rules applied.'}</div>
+                  <div><b>AI Semantic Intent:</b> {result.jev?.classification}</div>
                   {result.features?.urls?.length > 0 && (
-                    <div className="pt-2 border-t border-white/[0.06]">
-                      <b>Extracted & Defanged URLs:</b>
+                    <div className="pt-2 border-t border-[#232530]">
+                      <b>Defanged Links:</b>
                       {result.features.urls.map((u: any, i: number) => (
-                        <div key={i} className="text-slate-400 truncate mt-1">
+                        <div key={i} className="text-[#888b96] truncate mt-0.5">
                           • {u.original_url.replace('http', 'hxxp').replace('.', '[.]')}
                         </div>
                       ))}
@@ -515,10 +410,10 @@ export default function App() {
             </div>
 
             {/* Scan Another Button */}
-            <div className="pt-4 flex justify-center">
+            <div className="pt-3 flex justify-center">
               <button
                 onClick={handleReset}
-                className="px-6 py-2.5 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 hover:from-indigo-400 hover:to-purple-500 text-white font-semibold text-xs transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] cursor-pointer flex items-center gap-2"
+                className="px-5 py-2 rounded-xl bg-[#282a36] hover:bg-[#343746] text-white font-medium text-xs transition-colors cursor-pointer flex items-center gap-2 border border-[#3c3f50]"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>Scan Another Email</span>
@@ -529,28 +424,64 @@ export default function App() {
         )}
 
         {/* ======================================================== */}
-        {/* STATE 3: INPUT VIEW (PASTE OR SELECT EXAMPLE FIRST) */}
+        {/* CLEAN DRAG & DROP INPUT CONTAINER */}
         {/* ======================================================== */}
         {!scanning && !result && (
-          <div className="w-full space-y-5">
+          <div className="space-y-4">
             
-            {/* The Main Input Box */}
-            <div className="relative rounded-3xl bg-[#0d0f18]/80 border border-white/[0.08] p-4 shadow-2xl focus-within:border-indigo-500/60 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all backdrop-blur-xl">
-              
-              {/* Active Sample Indicator Pill (if an example is loaded) */}
+            {/* Dropzone & Text Area Container */}
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`relative rounded-2xl border transition-all p-3 bg-[#16171d] ${
+                isDragging
+                  ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/20'
+                  : 'border-[#282a35] focus-within:border-blue-500/60'
+              }`}
+            >
+              {/* Dragging Overlay Indicator */}
+              {isDragging && (
+                <div className="absolute inset-0 z-20 rounded-2xl bg-[#16171d]/90 backdrop-blur-sm flex flex-col items-center justify-center border-2 border-dashed border-blue-500 text-blue-400">
+                  <Upload className="w-8 h-8 mb-2 animate-bounce" />
+                  <span className="text-sm font-semibold text-white">Drop your .eml file here</span>
+                  <span className="text-xs text-[#8e909c] mt-0.5">We'll load its headers and text automatically</span>
+                </div>
+              )}
+
+              {/* File loaded badge if dropped */}
+              {loadedFileName && (
+                <div className="flex items-center justify-between px-3 py-1.5 mb-2 rounded-lg bg-[#1f212b] border border-[#2f3240] text-xs">
+                  <span className="text-white flex items-center gap-1.5 font-medium truncate">
+                    <FileText className="w-3.5 h-3.5 text-blue-400" />
+                    Loaded file: <b className="text-blue-300">{loadedFileName}</b>
+                  </span>
+                  <button
+                    onClick={() => {
+                      setEmailInput('');
+                      setLoadedFileName(null);
+                    }}
+                    className="text-[#888b96] hover:text-white cursor-pointer text-[11px]"
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
+
+              {/* Sample loaded badge if example chosen */}
               {activeSampleId && (
-                <div className="flex items-center justify-between px-3 py-1.5 mb-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs">
-                  <span className="text-indigo-300 font-medium">
-                    Loaded example: <b>{PRESET_SAMPLES.find(s => s.id === activeSampleId)?.name}</b>
+                <div className="flex items-center justify-between px-3 py-1.5 mb-2 rounded-lg bg-[#1f212b] border border-[#2f3240] text-xs">
+                  <span className="text-white font-medium">
+                    Loaded example: <b className="text-blue-300">{PRESET_SAMPLES.find(s => s.id === activeSampleId)?.name}</b>
                   </span>
                   <button
                     onClick={() => {
                       setEmailInput('');
                       setActiveSampleId(null);
                     }}
-                    className="text-slate-400 hover:text-white cursor-pointer text-[11px] flex items-center gap-1"
+                    className="text-[#888b96] hover:text-white cursor-pointer text-[11px]"
                   >
-                    <X className="w-3.5 h-3.5" /> Clear
+                    Clear
                   </button>
                 </div>
               )}
@@ -560,63 +491,73 @@ export default function App() {
                 onChange={e => {
                   setEmailInput(e.target.value);
                   if (activeSampleId) setActiveSampleId(null);
+                  if (loadedFileName) setLoadedFileName(null);
                 }}
-                placeholder="Paste the suspicious email contents or raw headers here..."
+                placeholder="Paste the email headers or text here, or drag and drop a .eml file directly into this box..."
                 rows={8}
-                className="w-full bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-500 resize-none focus:outline-none p-1 font-mono leading-relaxed"
+                className="w-full bg-transparent text-xs text-[#ececee] placeholder-[#656774] resize-none focus:outline-none p-1 font-mono leading-relaxed"
               />
 
-              {/* Bottom Action Bar */}
-              <div className="flex items-center justify-between pt-3 border-t border-white/[0.06] mt-2">
+              {/* Bottom Action Strip */}
+              <div className="flex items-center justify-between pt-2.5 border-t border-[#232530] mt-1">
                 <div className="flex items-center gap-2">
-                  <label className="py-1.5 px-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5 text-xs border border-white/[0.06]">
-                    <Upload className="w-3.5 h-3.5 text-indigo-400" />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="py-1.5 px-3 rounded-lg bg-[#20222b] hover:bg-[#282a36] text-[#b4b7c4] hover:text-white transition-colors cursor-pointer flex items-center gap-1.5 text-xs border border-[#2e303d]"
+                  >
+                    <Upload className="w-3.5 h-3.5 text-blue-400" />
                     <span>Upload .eml</span>
-                    <input type="file" accept=".eml,.msg,.txt" onChange={handleFileUpload} className="hidden" />
-                  </label>
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".eml,.msg,.txt"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
 
-                  <span className="text-[11px] text-slate-500 font-mono hidden sm:inline">
-                    {emailInput.length > 0 ? `${emailInput.length} characters` : 'Gmail / Outlook compatible'}
+                  <span className="text-[11px] text-[#717380] font-mono hidden sm:inline">
+                    Drag & drop supported
                   </span>
                 </div>
 
                 <button
                   onClick={handleScan}
                   disabled={!emailInput.trim()}
-                  className="px-6 py-2 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 hover:from-indigo-400 hover:to-purple-500 text-white font-semibold text-xs transition-all shadow-[0_0_20px_rgba(99,102,241,0.35)] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5"
+                  className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 shadow-sm"
                 >
                   <span>Analyze Message</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
 
             </div>
 
             {error && (
-              <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs text-center">
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs text-center">
                 {error}
               </div>
             )}
 
-            {/* Example Lures (Click loads text into textarea first!) */}
-            <div className="pt-2">
-              <div className="text-center text-xs text-slate-400 mb-2.5 font-medium">
-                Try a realistic lure (loads text into the box for your review first):
+            {/* Clean Example Pills */}
+            <div>
+              <div className="text-center text-xs text-[#717380] mb-2 font-medium">
+                Or select an example to preview first:
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {PRESET_SAMPLES.map(sample => {
                   const isSelected = activeSampleId === sample.id;
                   return (
                     <button
                       key={sample.id}
                       onClick={() => handleSelectSample(sample)}
-                      className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                      className={`p-2.5 rounded-xl border text-left transition-colors cursor-pointer ${
                         isSelected
-                          ? 'bg-indigo-500/20 border-indigo-500/60 shadow-[0_0_15px_rgba(99,102,241,0.25)]'
-                          : 'bg-[#0c0e17] border-white/[0.06] hover:border-white/[0.15] hover:bg-white/[0.02]'
+                          ? 'bg-[#222533] border-blue-500/50'
+                          : 'bg-[#16171d] border-[#262833] hover:border-[#383a48]'
                       }`}
                     >
-                      <div className="text-xs font-semibold text-slate-200 truncate">{sample.name}</div>
+                      <div className="text-xs font-semibold text-white truncate">{sample.name}</div>
                       <span className={`text-[10px] px-1.5 py-0.5 rounded border inline-block mt-1 ${sample.tagColor}`}>
                         {sample.tag}
                       </span>
@@ -632,7 +573,7 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="py-6 px-6 border-t border-white/[0.06] text-center text-xs text-slate-500 font-mono">
+      <footer className="py-5 px-6 border-t border-[#23252d] text-center text-xs text-[#6e707c] font-mono">
         <p>© 2026 PhishGuard • Open Source Email Security</p>
       </footer>
 
