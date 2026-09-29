@@ -3,7 +3,7 @@ import {
   ShieldCheck, AlertOctagon, AlertTriangle, CheckCircle2,
   Upload, ArrowRight, RefreshCw, FileText, X,
   HelpCircle, Lock, Zap, Globe, ChevronDown, ChevronUp,
-  Eye, Shield, Cpu
+  Eye, Shield, Cpu, ListChecks, UserCheck, Ban, PhoneCall
 } from 'lucide-react';
 
 const API_BASE = "http://127.0.0.1:8000";
@@ -522,6 +522,72 @@ export default function App() {
                 <AuthPill label="DMARC" value={result.features?.authentication?.dmarc || 'NONE'} />
               </div>
             </div>
+
+            {/* ── Recommended Action strip ── */}
+            {result.policy?.recommended_action && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 14,
+                padding: '14px 20px', borderRadius: 14, marginBottom: 12,
+                background: isPhish
+                  ? 'rgba(239,68,68,0.07)'
+                  : isEscalate
+                    ? 'rgba(245,158,11,0.07)'
+                    : 'rgba(52,211,153,0.07)',
+                border: `1px solid ${verdictBorder}`,
+                flexWrap: 'wrap',
+              }}>
+                {/* Icon */}
+                <div style={{
+                  width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: isPhish
+                    ? 'rgba(239,68,68,0.15)'
+                    : isEscalate
+                      ? 'rgba(245,158,11,0.15)'
+                      : 'rgba(52,211,153,0.15)',
+                }}>
+                  {isPhish
+                    ? <Ban size={17} color={verdictColor} />
+                    : isEscalate
+                      ? <PhoneCall size={17} color={verdictColor} />
+                      : <UserCheck size={17} color={verdictColor} />
+                  }
+                </div>
+
+                {/* Text */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontSize: 10, fontWeight: 700, letterSpacing: '0.09em',
+                    color: '#7b829a', textTransform: 'uppercase', marginBottom: 3,
+                    fontFamily: "'JetBrains Mono', monospace",
+                  }}>
+                    <ListChecks size={11} style={{ display: 'inline', marginRight: 5, verticalAlign: 'middle' }} />
+                    Recommended Action
+                  </div>
+                  <div style={{
+                    fontSize: 13, fontWeight: 600, color: verdictColor,
+                    lineHeight: 1.4, wordBreak: 'break-word',
+                  }}>
+                    {result.policy.recommended_action}
+                  </div>
+                </div>
+
+                {/* Human review badge */}
+                {result.policy?.human_review_required && (
+                  <div style={{
+                    padding: '5px 12px', borderRadius: 99,
+                    background: 'rgba(251,191,36,0.12)',
+                    border: '1px solid rgba(251,191,36,0.3)',
+                    fontSize: 10, fontWeight: 700, color: '#fbbf24',
+                    whiteSpace: 'nowrap', flexShrink: 0,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    letterSpacing: '0.07em',
+                  }}>
+                    👁 HUMAN REVIEW
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* 3 summary cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 16 }}>
