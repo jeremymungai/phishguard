@@ -246,6 +246,17 @@ export default function App() {
               <ShieldCheck size={17} color="white" />
             </div>
             <span style={{ fontSize: 16, fontWeight: 700, color: '#e8eaf0', letterSpacing: '-0.3px' }}>PhishGuard</span>
+            <span style={{
+              padding: '3px 8px', borderRadius: 99,
+              background: 'linear-gradient(135deg, rgba(139,92,246,0.15), rgba(59,130,246,0.15))',
+              border: '1px solid rgba(139,92,246,0.3)',
+              fontSize: 10, fontWeight: 700, color: '#a78bfa',
+              fontFamily: "'JetBrains Mono', monospace",
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+              letterSpacing: '0.04em',
+            }}>
+              ⚡ Powered by Jev
+            </span>
           </button>
 
           {/* Nav right */}
