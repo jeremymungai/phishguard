@@ -523,71 +523,151 @@ export default function App() {
               </div>
             </div>
 
-            {/* ── Recommended Action strip ── */}
-            {result.policy?.recommended_action && (
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 14,
-                padding: '14px 20px', borderRadius: 14, marginBottom: 12,
-                background: isPhish
-                  ? 'rgba(239,68,68,0.07)'
+            {/* ── Recommended Actions Card (for all users: personal, corporate, devs) ── */}
+            {result.policy?.recommended_action && (() => {
+              const actionSteps: string[] = (result.policy?.action_steps && result.policy.action_steps.length > 0)
+                ? result.policy.action_steps
+                : isPhish
+                  ? [
+                      "Avoid clicking any links, buttons, or attachments — they are designed to steal credentials or download malware.",
+                      "Ignore the sender and do not reply or provide passwords, verification codes, or financial info.",
+                      "Mark as Phishing / Spam in your email app (Gmail, Outlook, Apple Mail) to block future attempts.",
+                      "Delete this email immediately. (If you already clicked or entered a password, reset it now on the real website).",
+                    ]
                   : isEscalate
-                    ? 'rgba(245,158,11,0.07)'
-                    : 'rgba(52,211,153,0.07)',
-                border: `1px solid ${verdictBorder}`,
-                flexWrap: 'wrap',
-              }}>
-                {/* Icon */}
-                <div style={{
-                  width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: isPhish
-                    ? 'rgba(239,68,68,0.15)'
-                    : isEscalate
-                      ? 'rgba(245,158,11,0.15)'
-                      : 'rgba(52,211,153,0.15)',
-                }}>
-                  {isPhish
-                    ? <Ban size={17} color={verdictColor} />
-                    : isEscalate
-                      ? <PhoneCall size={17} color={verdictColor} />
-                      : <UserCheck size={17} color={verdictColor} />
-                  }
-                </div>
+                    ? [
+                        "Do not reply directly to this email — the sender address or display name may be impersonated.",
+                        "Verify with the sender through a separate, known channel (like calling a number you already trust).",
+                        "Never transfer funds, purchase gift cards, or share sensitive details based on an email request.",
+                        "If you are at work, check with your team or IT lead; if personal, ignore and treat as suspicious.",
+                      ]
+                    : [
+                        "Safe to read, reply, and open attachments under standard email practices.",
+                        "As a standard precaution, always double-check unexpected requests for money, gift cards, or credentials.",
+                      ];
 
-                {/* Text */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontSize: 10, fontWeight: 700, letterSpacing: '0.09em',
-                    color: '#7b829a', textTransform: 'uppercase', marginBottom: 3,
-                    fontFamily: "'JetBrains Mono', monospace",
-                  }}>
-                    <ListChecks size={11} style={{ display: 'inline', marginRight: 5, verticalAlign: 'middle' }} />
-                    Recommended Action
+              return (
+                <div style={{
+                  padding: '20px 22px', borderRadius: 16, marginBottom: 14,
+                  background: isPhish
+                    ? 'rgba(239,68,68,0.06)'
+                    : isEscalate
+                      ? 'rgba(245,158,11,0.06)'
+                      : 'rgba(52,211,153,0.06)',
+                  border: `1px solid ${verdictBorder}`,
+                  boxShadow: `0 4px 24px ${verdictGlow}`,
+                }}>
+                  {/* Top Bar: Icon + Section Title + Status Badge */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{
+                        width: 32, height: 32, borderRadius: 10, flexShrink: 0,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: isPhish
+                          ? 'rgba(239,68,68,0.18)'
+                          : isEscalate
+                            ? 'rgba(245,158,11,0.18)'
+                            : 'rgba(52,211,153,0.18)',
+                        border: `1px solid ${verdictBorder}`,
+                      }}>
+                        {isPhish
+                          ? <Ban size={16} color={verdictColor} />
+                          : isEscalate
+                            ? <PhoneCall size={16} color={verdictColor} />
+                            : <UserCheck size={16} color={verdictColor} />
+                        }
+                      </div>
+                      <div>
+                        <div style={{
+                          fontSize: 10, fontWeight: 700, letterSpacing: '0.09em',
+                          color: '#7b829a', textTransform: 'uppercase',
+                          fontFamily: "'JetBrains Mono', monospace",
+                          display: 'flex', alignItems: 'center', gap: 5,
+                        }}>
+                          <ListChecks size={12} />
+                          Recommended Actions
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Universal User Badge */}
+                    <div style={{
+                      padding: '4px 12px', borderRadius: 99,
+                      background: isPhish
+                        ? 'rgba(239,68,68,0.15)'
+                        : isEscalate
+                          ? 'rgba(245,158,11,0.15)'
+                          : 'rgba(52,211,153,0.15)',
+                      border: `1px solid ${verdictBorder}`,
+                      fontSize: 10, fontWeight: 700, color: verdictColor,
+                      fontFamily: "'JetBrains Mono', monospace",
+                      letterSpacing: '0.07em',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {isPhish ? '⛔ DO NOT ENGAGE' : isEscalate ? '⚠️ VERIFY SENDER FIRST' : '✅ SAFE TO READ'}
+                    </div>
                   </div>
+
+                  {/* Main Action Headline */}
                   <div style={{
-                    fontSize: 13, fontWeight: 600, color: verdictColor,
-                    lineHeight: 1.4, wordBreak: 'break-word',
+                    fontSize: 14, fontWeight: 600, color: verdictColor,
+                    marginBottom: 14, lineHeight: 1.45,
+                    borderBottom: '1px solid rgba(255,255,255,0.06)',
+                    paddingBottom: 12,
                   }}>
                     {result.policy.recommended_action}
                   </div>
-                </div>
 
-                {/* Human review badge */}
-                {result.policy?.human_review_required && (
-                  <div style={{
-                    padding: '5px 12px', borderRadius: 99,
-                    background: 'rgba(251,191,36,0.12)',
-                    border: '1px solid rgba(251,191,36,0.3)',
-                    fontSize: 10, fontWeight: 700, color: '#fbbf24',
-                    whiteSpace: 'nowrap', flexShrink: 0,
-                    fontFamily: "'JetBrains Mono', monospace",
-                    letterSpacing: '0.07em',
-                  }}>
-                    👁 HUMAN REVIEW
+                  {/* Numbered Action Steps */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {actionSteps.map((step, idx) => {
+                      const hasDash = step.includes(' — ');
+                      const hasColon = !hasDash && step.includes(': ');
+                      const parts = hasDash ? step.split(' — ') : hasColon ? step.split(': ') : [step];
+
+                      return (
+                        <div key={idx} style={{
+                          display: 'flex', alignItems: 'flex-start', gap: 12,
+                          padding: '10px 14px', borderRadius: 10,
+                          background: 'rgba(0,0,0,0.22)',
+                          border: '1px solid rgba(255,255,255,0.04)',
+                        }}>
+                          {/* Number Badge */}
+                          <div style={{
+                            width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            background: isPhish
+                              ? 'rgba(239,68,68,0.2)'
+                              : isEscalate
+                                ? 'rgba(245,158,11,0.2)'
+                                : 'rgba(52,211,153,0.2)',
+                            color: verdictColor,
+                            fontSize: 11, fontWeight: 700,
+                            fontFamily: "'JetBrains Mono', monospace",
+                            border: `1px solid ${verdictBorder}`,
+                            marginTop: 1,
+                          }}>
+                            {idx + 1}
+                          </div>
+
+                          {/* Step Content */}
+                          <div style={{ fontSize: 13, lineHeight: 1.45, color: '#cbd5e1', flex: 1 }}>
+                            {parts.length > 1 ? (
+                              <>
+                                <strong style={{ color: '#f1f5f9', fontWeight: 600 }}>{parts[0]}</strong>
+                                <span style={{ color: '#94a3b8' }}> — {parts.slice(1).join(' — ')}</span>
+                              </>
+                            ) : (
+                              step
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
-              </div>
-            )}
+                </div>
+              );
+            })()}
 
             {/* 3 summary cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 16 }}>

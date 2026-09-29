@@ -162,7 +162,7 @@ npm run dev
 
 ## 📡 API Reference
 
-PhishGuard provides a REST API for automated SOC triage, SIEM integration, or mail gateway webhooks.
+PhishGuard provides a REST API for automated security triage, custom workflows, or mail gateway webhooks.
 
 ### 1. Analyze Raw Email String
 **Endpoint:** `POST /api/emails/analyze-raw`  
@@ -203,7 +203,12 @@ curl -X POST http://127.0.0.1:8000/api/emails/analyze-raw \
   },
   "policy": {
     "verdict": "QUARANTINE_RECOMMENDATION",
-    "recommended_action": "QUARANTINE_RECOMMENDATION: Brand impersonation with spoofed email authentication",
+    "recommended_action": "AVOID & DELETE: Sender is pretending to be a real brand. Do not click any links.",
+    "action_steps": [
+      "Avoid clicking any links, buttons, or images — the sender domain is spoofing a real service.",
+      "Never enter passwords, credit card info, or personal details on pages from this email.",
+      "Mark as Phishing / Spam in your email app and delete the message."
+    ],
     "reasons": [
       "Deterministic rule: Confirmed brand lookalike domain with failed DMARC"
     ]

@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+from datetime import datetime
 from typing import Any, Optional
 from pydantic import BaseModel, Field
 
@@ -64,6 +64,7 @@ class JevDecision(BaseModel):
 class PolicyVerdict(BaseModel):
     verdict: str # ALLOW, MONITOR, ESCALATE, QUARANTINE_RECOMMENDATION
     recommended_action: str
+    action_steps: list[str] = Field(default_factory=list)
     reasons: list[str] = Field(default_factory=list)
     human_review_required: bool = False
 
