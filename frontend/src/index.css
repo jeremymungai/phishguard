@@ -1,38 +1,207 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 :root {
   color-scheme: dark;
+  --bg-primary: #080b12;
+  --bg-secondary: #0e1117;
+  --bg-card: #111520;
+  --bg-card-hover: #151a28;
+  --border: #1c2133;
+  --border-hover: #2a3050;
+  --text-primary: #e8eaf0;
+  --text-secondary: #7b829a;
+  --text-muted: #4a5068;
+  --accent: #3b82f6;
+  --accent-glow: rgba(59, 130, 246, 0.15);
 }
+
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: #030712;
-  color: #f3f4f6;
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 #root {
   width: 100%;
   min-height: 100vh;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
 }
 
-/* Custom scrollbars */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #374151; }
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-::-webkit-scrollbar-track {
-  background: #0b0f19;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
-::-webkit-scrollbar-thumb {
-  background: #1f2937;
-  border-radius: 3px;
+@keyframes scanLine {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(600%); opacity: 0; }
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #374151;
+@keyframes pulseRing {
+  0%   { transform: scale(0.9); opacity: 0.6; }
+  50%  { transform: scale(1.05); opacity: 0.3; }
+  100% { transform: scale(0.9); opacity: 0.6; }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes gridFade {
+  0%, 100% { opacity: 0.03; }
+  50%       { opacity: 0.06; }
+}
+@keyframes stepReveal {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes verdictIn {
+  0%   { opacity: 0; transform: scale(0.96) translateY(12px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes tickIn {
+  0%   { stroke-dashoffset: 60; }
+  100% { stroke-dashoffset: 0; }
+}
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(59,130,246,0.2); }
+  50%       { box-shadow: 0 0 40px rgba(59,130,246,0.4); }
+}
+@keyframes borderGlow {
+  0%, 100% { border-color: rgba(59,130,246,0.3); }
+  50%       { border-color: rgba(59,130,246,0.6); }
+}
+@keyframes dotBounce {
+  0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+  40%           { transform: scale(1); opacity: 1; }
+}
+
+.animate-fade-up    { animation: fadeUp 0.5s ease forwards; }
+.animate-fade-in    { animation: fadeIn 0.4s ease forwards; }
+.animate-float      { animation: float 3s ease-in-out infinite; }
+.animate-verdict-in { animation: verdictIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.animate-step-reveal { animation: stepReveal 0.3s ease forwards; }
+.animate-glow-pulse { animation: glowPulse 2s ease-in-out infinite; }
+.animate-spin-slow  { animation: spin 1s linear infinite; }
+
+/* ===== SHIMMER BUTTON ===== */
+.btn-primary {
+  position: relative;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2.5s infinite;
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(59,130,246,0.35);
+}
+.btn-primary:active { transform: translateY(0); }
+.btn-primary:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ===== GLASS CARD ===== */
+.glass-card {
+  background: rgba(14, 17, 28, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.glass-card:hover {
+  border-color: var(--border-hover);
+}
+
+/* ===== GRID BACKGROUND ===== */
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(59,130,246,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59,130,246,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: gridFade 6s ease-in-out infinite;
+}
+
+/* ===== SCAN BEAM ===== */
+.scan-beam {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(59,130,246,0.8), rgba(99,179,237,1), rgba(59,130,246,0.8), transparent);
+  box-shadow: 0 0 20px 6px rgba(59,130,246,0.4);
+  animation: scanLine 2s ease-in-out infinite;
+}
+
+/* ===== STEP DOTS ===== */
+.dot-bounce { display: inline-block; }
+.dot-bounce:nth-child(1) { animation: dotBounce 1.4s ease-in-out 0s infinite; }
+.dot-bounce:nth-child(2) { animation: dotBounce 1.4s ease-in-out 0.2s infinite; }
+.dot-bounce:nth-child(3) { animation: dotBounce 1.4s ease-in-out 0.4s infinite; }
+
+/* ===== TEXTAREA ===== */
+.email-textarea {
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  width: 100%;
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.email-textarea::placeholder { color: var(--text-muted); }
+
+/* ===== VERDICT PROGRESS BAR ===== */
+.risk-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ===== PULSE RING ===== */
+.pulse-ring {
+  animation: pulseRing 2s ease-in-out infinite;
+}
+
+/* ===== RESPONSIVENESS ===== */
+@media (max-width: 640px) {
+  .hide-sm { display: none; }
 }
