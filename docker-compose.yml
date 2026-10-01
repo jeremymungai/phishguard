@@ -1,11 +1,11 @@
-﻿version: '3.8'
+version: '3.8'
 
 services:
   phishguard:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: phishguard-soc
+    container_name: phishguard
     ports:
       - "8000:8000"
     environment:

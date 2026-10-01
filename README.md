@@ -1,7 +1,7 @@
 # 🛡️ PhishGuard • Open-Source Email Security Inspector
 
 <p align="center">
-  <strong>The "VirusTotal for Email" — Fast, open-source email triage combining deterministic security verification with TypeSafe Jev semantic intelligence.</strong>
+  <strong>The "VirusTotal for Email" — Fast, privacy-first email triage combining deterministic security verification with TypeSafe Jev semantic intelligence.</strong>
 </p>
 
 <p align="center">
@@ -9,7 +9,8 @@
   <img src="https://img.shields.io/badge/FastAPI-0.115+-009688?style=flat&logo=fastapi&logoColor=white" alt="FastAPI">
   <img src="https://img.shields.io/badge/React-19.0-61DAFB?style=flat&logo=react&logoColor=black" alt="React 19">
   <img src="https://img.shields.io/badge/TypeScript-5.0+-3178C6?style=flat&logo=typescript&logoColor=white" alt="TypeScript">
-  <img src="https://img.shields.io/badge/TailwindCSS-v4-38B2AC?style=flat&logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
+  <img src="https://img.shields.io/badge/Zero_API_Keys-Required-blue" alt="Zero API Keys Required">
+  <img src="https://img.shields.io/badge/Zero_Retention-Privacy_First-success" alt="Zero Retention Privacy">
   <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT">
   <img src="https://img.shields.io/badge/Tests-8%2F8%20Passing-brightgreen" alt="Tests: 8/8 Passing">
 </p>
@@ -18,11 +19,14 @@
 
 ## 📌 Table of Contents
 - [What is PhishGuard?](#-what-is-phishguard)
+- [Privacy & Data Security (Zero-Retention Guarantee)](#-privacy--data-security-zero-retention-guarantee)
+- [Zero API Key Requirement](#-zero-api-key-requirement-autonomous--offline-first)
 - [Why PhishGuard? (The Hybrid Security Model)](#-why-phishguard-the-hybrid-security-model)
 - [Core Features](#-core-features)
 - [Architecture & Detection Pipeline](#-architecture--detection-pipeline)
 - [How to Inspect Any Email (Gmail & Outlook)](#-how-to-inspect-any-email-gmail--outlook)
 - [Quickstart & Installation](#-quickstart--installation)
+- [Hosting & Public Deployment Guide](#-hosting--public-deployment-guide)
 - [API Reference](#-api-reference)
 - [Adversarial Robustness (Anti-Prompt Injection)](#-adversarial-robustness-anti-prompt-injection)
 - [Running Tests](#-running-tests)
@@ -41,6 +45,34 @@ Just like **VirusTotal** scans files and URLs, PhishGuard scans **raw email head
 3. **Where do the links really lead, and are they trying to steal credentials?**
 
 Built with a minimalist web interface inspired by **Gemini** and modern security engineering tools, PhishGuard strips away unnecessary military jargon and presents actionable, plain-English security verdicts in under **55 milliseconds**.
+
+---
+
+## 🔒 Privacy & Data Security (Zero-Retention Guarantee)
+
+When hosting PhishGuard publicly on the internet or deploying it in an organization, data privacy and liability are paramount. PhishGuard is architected with a strict **Zero-Retention Guarantee**:
+
+| Data Asset | Stored on Server? | Lifecycle & Processing |
+| :--- | :---: | :--- |
+| **Email Body (Plain Text & HTML)** | ❌ **NEVER STORED** | Processed strictly in volatile memory (RAM) during analysis and immediately discarded. Never written to disk or database. |
+| **Email Attachments** | ❌ **NEVER STORED** | Inspected in-memory for dangerous extensions (e.g. `.exe`, `.vbs`, `.xlsm`) and dropped. File payloads are never saved. |
+| **User Tracking & Telemetry** | ❌ **ZERO TELEMETRY** | No third-party trackers, no tracking pixels, no advertising cookies, and no telemetry pings. |
+| **Operational Metadata** | ⚠️ **Metadata Only** | Only technical inspection signals (`sender_domain`, `timestamp`, `spf/dkim/dmarc verdict`, `risk_score`) are logged locally in `phishguard.db` to power scan counters and history. |
+
+> [!IMPORTANT]
+> **Safe for Public Hosting & Regulatory Compliance:**  
+> Because PhishGuard never persists message bodies or attachment binaries, operators who host this application online do **not** become custodians of confidential personal or corporate communications.
+
+---
+
+## 🔑 Zero API Key Requirement (Autonomous & Offline-First)
+
+Unlike traditional AI security tools that require costly third-party subscriptions or paid API tokens (OpenAI, Anthropic), PhishGuard runs **100% autonomously out of the box with zero API keys**:
+
+- **Local Deterministic Analysis:** Cryptographic SPF, DKIM, DMARC validation, Unicode homoglyph hunting, link defanging, and attachment inspection are executed entirely by local Python code in under 55ms.
+- **Built-in Calibrated Jev Engine:** Includes an offline calibrated TypeSafe Jev System-1 evaluator (`MockPhishGuardJevClient`) that evaluates semantic indicators without external network calls.
+- **Zero Ongoing Operational Costs:** Host and run it without worrying about metered API token limits, surprise billing, or rate limits.
+- **Optional Cloud AI:** If you wish to connect to TypeSafe AI's hosted infrastructure, simply provide `TYPESAFE_API_KEY` in your `.env` file — the engine will automatically switch to live mode without code changes.
 
 ---
 
@@ -156,6 +188,78 @@ npm run build
 If you want to run the Vite development server with hot-reloading:
 ```bash
 npm run dev
+```
+
+---
+
+## 🌐 Hosting & Public Deployment Guide
+
+PhishGuard is designed to be easily deployed to the public internet as a lightweight, single-port web service. Because the pre-built React frontend is served directly by the FastAPI backend, you only need to expose a single port (`8000`).
+
+### 1. Docker Compose (Quickest for VPS / Server)
+```bash
+# Clone the repository
+git clone https://github.com/jeremymungai/phishguard.git
+cd phishguard
+
+# Build the frontend production bundle
+cd frontend && npm install && npm run build && cd ..
+
+# Launch the container
+docker compose up -d --build
+```
+Your instance will be running at `http://localhost:8000`.
+
+### 2. Cloud Platforms (Render, Railway, Fly.io, DigitalOcean)
+PhishGuard is plug-and-play on serverless and PaaS platforms:
+1. Connect your GitHub repository to your cloud host.
+2. **Build Command:**
+   ```bash
+   cd frontend && npm install && npm run build && cd ../backend && pip install -r requirements.txt
+   ```
+3. **Start Command:**
+   ```bash
+   cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+   ```
+4. **Environment Variables:**
+   - `PORT`: (automatically set by most platforms)
+   - `DATABASE_URL`: `sqlite:///./phishguard.db` (or link PostgreSQL if desired)
+   - `TYPESAFE_API_KEY`: *(Optional — leave blank for autonomous offline mode)*
+
+### 3. Production HTTPS / Reverse Proxy Configuration
+When hosting on a public domain, always terminate TLS using a reverse proxy:
+
+#### Caddy (Automatic Let's Encrypt SSL)
+```caddy
+phishguard.yourdomain.com {
+    reverse_proxy localhost:8000
+}
+```
+
+#### Nginx
+```nginx
+server {
+    listen 80;
+    server_name phishguard.yourdomain.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name phishguard.yourdomain.com;
+
+    # SSL certificates (e.g. from certbot)
+    ssl_certificate /etc/letsencrypt/live/phishguard.yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/phishguard.yourdomain.com/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
 ```
 
 ---
